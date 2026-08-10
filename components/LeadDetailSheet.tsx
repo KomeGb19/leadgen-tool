@@ -75,7 +75,7 @@ export function LeadDetailSheet({
               variant="ghost"
               size="sm"
               onClick={() =>
-                window.open(`https://${company.website}`, "_blank")
+                window.open(`${company.website}`, "_blank")
               }
             >
               Visit site ↗
