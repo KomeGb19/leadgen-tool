@@ -3,8 +3,24 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { staticSatelliteUrl } from "@/lib/places";
 import type { Company, Imagery } from "@/lib/types";
+
+/** Client-safe version of the static map URL builder. Must use the
+ *  NEXT_PUBLIC_-prefixed key — server-only env vars (like
+ *  GOOGLE_MAPS_STATIC_API_KEY, used in lib/places.ts) are always undefined
+ *  in browser code, even if they're set in .env.local. */
+function clientSatelliteUrl(lat: number, lng: number, zoom: number): string {
+  const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? "";
+  const params = new URLSearchParams({
+    center: `${lat},${lng}`,
+    zoom: String(zoom),
+    size: "640x400",
+    maptype: "satellite",
+    scale: "2",
+    key,
+  });
+  return `https://maps.googleapis.com/maps/api/staticmap?${params.toString()}`;
+}
 
 export function SatelliteViewer({
   company,
@@ -21,7 +37,7 @@ export function SatelliteViewer({
 
   const hasKey = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY);
   const src = hasKey
-    ? staticSatelliteUrl(company.lat, company.lng, zoom)
+    ? clientSatelliteUrl(company.lat, company.lng, zoom)
     : imagery?.imageUrl;
 
   return (
@@ -32,10 +48,10 @@ export function SatelliteViewer({
           <img
             src={src}
             alt={`Satellite view of ${company.name} lot`}
-            className="h-full w-full object-cover"
+            className="absolute inset-0 z-0 h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
+          <div className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
             <span className="font-mono text-[11px] uppercase tracking-wide text-muted">
               No live imagery configured
             </span>
@@ -47,8 +63,8 @@ export function SatelliteViewer({
           </div>
         )}
 
-        <div className="absolute left-2 top-2 flex gap-1.5">
-          <Badge variant={imagery?.source === "manual" ? "warn" : "outline"}>
+        <div className="absolute left-2 top-2 z-10 flex gap-1.5">
+          <Badge variant={imagery?.source === "manual" ? "warn" : "amber"}>
             {imagery?.source === "skyfi"
               ? "High-res"
               : imagery?.source === "manual"
@@ -60,19 +76,21 @@ export function SatelliteViewer({
           )}
         </div>
 
-        <div className="absolute bottom-2 right-2 flex gap-1">
+        <div className="absolute bottom-2 right-2 z-10 flex gap-1">
           <Button
+            type="button"
             size="icon"
-            variant="ghost"
-            className="bg-ink/70"
+            variant="default"
+            className=" bg-ink hover:bg-ink text-amber"
             onClick={() => setZoom((z) => Math.min(21, z + 1))}
           >
             +
           </Button>
           <Button
+            type="button"
             size="icon"
-            variant="ghost"
-            className="bg-ink/70"
+            variant="default"
+            className="bg-ink/80 hover:bg-ink text-amber"
             onClick={() => setZoom((z) => Math.max(15, z - 1))}
           >
             −
