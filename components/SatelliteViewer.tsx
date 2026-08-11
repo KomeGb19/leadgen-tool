@@ -45,54 +45,31 @@ export function SatelliteViewer({
       <div className="relative aspect-video w-full bg-rail">
         {src ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={src}
-            alt={`Satellite view of ${company.name} lot`}
-            className="absolute inset-0 z-0 h-full w-full object-cover"
-          />
+          <img src={src} alt={`Satellite view of ${company.name} lot`} className="h-full w-full object-cover" />
         ) : (
-          <div className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
+          <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
             <span className="font-mono text-[11px] uppercase tracking-wide text-muted">
               No live imagery configured
             </span>
             <p className="text-xs text-muted">
-              Set GOOGLE_MAPS_STATIC_API_KEY (server) and
-              NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY (client) to render live
-              satellite tiles here.
+              Set GOOGLE_MAPS_STATIC_API_KEY (server) and NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY (client)
+              to render live satellite tiles here.
             </p>
           </div>
         )}
 
-        <div className="absolute left-2 top-2 z-10 flex gap-1.5">
-          <Badge variant={imagery?.source === "manual" ? "warn" : "amber"}>
-            {imagery?.source === "skyfi"
-              ? "High-res"
-              : imagery?.source === "manual"
-                ? "Manual"
-                : "Google satellite"}
+        <div className="absolute left-2 top-2 flex gap-1.5">
+          <Badge variant={imagery?.source === "manual" ? "warn" : "outline"}>
+            {imagery?.source === "skyfi" ? "High-res" : imagery?.source === "manual" ? "Manual" : "Google satellite"}
           </Badge>
-          {imagery?.capturedDate && (
-            <Badge variant="outline">captured {imagery.capturedDate}</Badge>
-          )}
+          {imagery?.capturedDate && <Badge variant="outline">captured {imagery.capturedDate}</Badge>}
         </div>
 
-        <div className="absolute bottom-2 right-2 z-10 flex gap-1">
-          <Button
-            type="button"
-            size="icon"
-            variant="default"
-            className=" bg-ink hover:bg-ink text-amber"
-            onClick={() => setZoom((z) => Math.min(21, z + 1))}
-          >
+        <div className="absolute bottom-2 right-2 flex gap-1">
+          <Button size="icon" variant="ghost" className="bg-ink/70" onClick={() => setZoom((z) => Math.min(21, z + 1))}>
             +
           </Button>
-          <Button
-            type="button"
-            size="icon"
-            variant="default"
-            className="bg-ink/80 hover:bg-ink text-amber"
-            onClick={() => setZoom((z) => Math.max(15, z - 1))}
-          >
+          <Button size="icon" variant="ghost" className="bg-ink/70" onClick={() => setZoom((z) => Math.max(15, z - 1))}>
             −
           </Button>
         </div>

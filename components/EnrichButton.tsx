@@ -25,7 +25,7 @@ export function EnrichButton({ onDone }: { onDone?: () => void }) {
 
   return (
     <Button variant="amber" onClick={run} disabled={loading}>
-      {loading ? "Scanning Seattle..." : "Run lead discovery"}
+      {loading ? "Scanning Washington..." : "Run lead discovery"}
     </Button>
   );
 }

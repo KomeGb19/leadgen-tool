@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         {
           name: row.companyName,
           address: row.address,
-          city: row.city ?? "Seattle",
+          ...(row.city ? { city: row.city } : {}),
           state: "WA",
           zip: row.zip,
           phone: row.phone,
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
     let fmcsa;
     try {
       const candidates = await searchCarrierByName(row.companyName);
-      fmcsa = pickBestMatch(candidates, row.city ?? "Seattle");
+      fmcsa = pickBestMatch(candidates, row.city ?? "");
     } catch (err) {
       console.error(`[import] FMCSA lookup failed for "${row.companyName}":`, err);
       fmcsa = undefined;

@@ -4,8 +4,8 @@ import { SideRail } from "@/components/SideRail";
 import { ToastProvider } from "@/components/Toast";
 
 export const metadata: Metadata = {
-  title: "Hauler Lead Finder — Seattle Septic & Grease",
-  description: "Lead sourcing dashboard for septic and grease-trap haulers in Seattle, WA.",
+  title: "Hauler Lead Finder — Washington Septic & Grease",
+  description: "Lead sourcing dashboard for septic and grease-trap haulers in Washington State.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -47,7 +47,7 @@ export function SideRail() {
         <div className="font-mono text-[10px] uppercase tracking-wide text-muted">
           Region
         </div>
-        <div className="text-sm text-paper">Seattle, WA</div>
+        <div className="text-sm text-paper">Washington State</div>
         <div className="mt-1 font-mono text-[10px] text-muted">
           Septic · Grease trap
         </div>

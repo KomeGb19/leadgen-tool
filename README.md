@@ -1,6 +1,6 @@
 # Hauler Lead Finder
 
-A lead-sourcing dashboard for septic and grease-trap haulers in Seattle, WA.
+A lead-sourcing dashboard for septic and grease-trap haulers in Washington State.
 Discovers companies via Google Places, verifies fleet size via FMCSA (USDOT
 registration data), falls back to satellite-imagery truck counts when no
 FMCSA record exists, and scores/ranks leads through a Kanban + table pipeline.
@@ -11,7 +11,7 @@ shadcn-style UI components · Leaflet map.
 ## Runs with zero setup
 
 `npm install && npm run dev` works immediately on a bundled mock dataset (14
-fictional Seattle companies shaped exactly like real FMCSA + Places output),
+fictional Washington companies shaped exactly like real FMCSA + Places output),
 so you can see the full UI — map, table, kanban, detail panel, scoring — before
 wiring any API keys.
 

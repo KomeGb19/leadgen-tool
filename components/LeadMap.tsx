@@ -15,7 +15,8 @@ import "leaflet/dist/leaflet.css";
 
 const tierColor = { hot: "#E8A33D", warm: "#4A90D9", cold: "#8A9199" } as const;
 
-const SEATTLE_CENTER: [number, number] = [47.6062, -122.3321];
+// Center of Washington state for better initial view of the entire state
+const WASHINGTON_CENTER: [number, number] = [47.4009, -121.4905];
 
 // Imported leads can have null lat/lng if geocoding failed or hasn't run yet —
 // Leaflet throws hard on a null coordinate instead of skipping it, so filter
@@ -56,8 +57,8 @@ export default function LeadMap({
 
   return (
     <MapContainer
-      center={SEATTLE_CENTER}
-      zoom={11}
+      center={WASHINGTON_CENTER}
+      zoom={7}
       scrollWheelZoom
       className="h-full w-full"
       style={{ background: "#14171B" }}
