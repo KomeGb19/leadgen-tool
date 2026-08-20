@@ -3,7 +3,10 @@
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import type { LeadFilters } from "@/lib/types";
+import { useToast } from "@/components/Toast";
+import { useState } from "react";
+import type { LeadFilters, Lead } from "@/lib/types";
+import { exportLeadsToCsv, exportLeadsToExcel } from "@/lib/export";
 
 export const DEFAULT_FILTERS: LeadFilters = {
   query: "",
@@ -16,20 +19,58 @@ export const DEFAULT_FILTERS: LeadFilters = {
   sortDir: "desc",
 };
 
+export interface FiltersBarProps {
+  filters: LeadFilters;
+  onChange: (f: LeadFilters) => void;
+  resultCount: number;
+  filteredLeads: Lead[];
+}
+
 export function FiltersBar({
   filters,
   onChange,
   resultCount,
-}: {
-  filters: LeadFilters;
-  onChange: (f: LeadFilters) => void;
-  resultCount: number;
-}) {
+  filteredLeads,
+}: FiltersBarProps) {
+  const { push } = useToast();
+  const [csvLoading, setCsvLoading] = useState(false);
+  const [excelLoading, setExcelLoading] = useState(false);
+
   function set<K extends keyof LeadFilters>(key: K, value: LeadFilters[K]) {
     onChange({ ...filters, [key]: value });
   }
 
   const dirty = JSON.stringify(filters) !== JSON.stringify(DEFAULT_FILTERS);
+
+  const handleExportCsv = async () => {
+    setCsvLoading(true);
+    try {
+      exportLeadsToCsv(filteredLeads, "filtered_leads");
+      push("Leads exported to CSV successfully", "success");
+    } catch (error) {
+      push(
+        `Failed to export CSV: ${error instanceof Error ? error.message : String(error)}`,
+        "error"
+      );
+    } finally {
+      setCsvLoading(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    setExcelLoading(true);
+    try {
+      await exportLeadsToExcel(filteredLeads, "filtered_leads");
+      push("Leads exported to Excel successfully", "success");
+    } catch (error) {
+      push(
+        `Failed to export Excel: ${error instanceof Error ? error.message : String(error)}`,
+        "error"
+      );
+    } finally {
+      setExcelLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-3 rounded border border-line bg-panel p-3">
@@ -149,6 +190,24 @@ export function FiltersBar({
             Clear filters
           </Button>
         )}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCsv}
+            disabled={csvLoading || filteredLeads.length === 0}
+          >
+            {csvLoading ? "Exporting..." : "Export CSV"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportExcel}
+            disabled={excelLoading || filteredLeads.length === 0}
+          >
+            {excelLoading ? "Exporting..." : "Export Excel"}
+          </Button>
+        </div>
       </div>
     </div>
   );

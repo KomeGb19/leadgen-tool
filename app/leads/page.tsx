@@ -62,6 +62,7 @@ export default function LeadsPage() {
         filters={filters}
         onChange={setFilters}
         resultCount={filtered.length}
+        filteredLeads={filtered}
       />
 
       {loading ? (
