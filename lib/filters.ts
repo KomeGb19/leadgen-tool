@@ -12,6 +12,7 @@ export function applyFilters(leads: Lead[], f: LeadFilters): Lead[] {
     if (f.category !== "all" && l.company.category !== f.category) return false;
     if (f.status !== "all" && l.status !== f.status) return false;
     if (f.source !== "all" && l.company.source !== f.source) return false;
+    if (f.state !== "all" && l.company.state !== f.state) return false;
     if (f.query) {
       const q = f.query.toLowerCase();
       const haystack = `${l.company.name} ${l.company.address} ${l.fmcsa?.usdotNumber ?? ""}`.toLowerCase();

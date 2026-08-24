@@ -7,6 +7,7 @@ import { useToast } from "@/components/Toast";
 import { useState } from "react";
 import type { LeadFilters, Lead } from "@/lib/types";
 import { exportLeadsToCsv, exportLeadsToExcel } from "@/lib/export";
+import { US_STATES } from "@/lib/utils";
 
 export const DEFAULT_FILTERS: LeadFilters = {
   query: "",
@@ -15,6 +16,7 @@ export const DEFAULT_FILTERS: LeadFilters = {
   category: "all",
   status: "all",
   source: "all",
+  state: "all",
   sortBy: "score",
   sortDir: "desc",
 };
@@ -119,6 +121,20 @@ export function FiltersBar({
           <option value="google_places">Google Places</option>
           <option value="hauler_registry">Hauler registry</option>
           <option value="manual">Manual</option>
+        </Select>
+
+        <Select
+          value={filters.state}
+          onChange={(e) =>
+            set("state", e.target.value as LeadFilters["state"])
+          }
+        >
+          <option value="all">All states</option>
+          {US_STATES.map((state) => (
+            <option key={state} value={state}>
+              {state}
+            </option>
+          ))}
         </Select>
 
         <div className="ml-auto flex items-center gap-2">

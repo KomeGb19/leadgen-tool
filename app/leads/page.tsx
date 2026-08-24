@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 import { FiltersBar, DEFAULT_FILTERS } from "@/components/FiltersBar";
 import { LeadsTable } from "@/components/LeadsTable";
 import { KanbanBoard } from "@/components/KanbanBoard";
@@ -10,6 +11,7 @@ import { LeadDetailSheet } from "@/components/LeadDetailSheet";
 import { EnrichButton } from "@/components/EnrichButton";
 import { useLeads } from "@/lib/useLeads";
 import { applyFilters } from "@/lib/filters";
+import { US_STATES } from "@/lib/stateUtils";
 import type { Lead, LeadFilters } from "@/lib/types";
 
 export default function LeadsPage() {
@@ -17,6 +19,7 @@ export default function LeadsPage() {
   const [filters, setFilters] = useState<LeadFilters>(DEFAULT_FILTERS);
   const [view, setView] = useState<"table" | "kanban">("table");
   const [selected, setSelected] = useState<Lead | null>(null);
+  const [selectedStateCode, setSelectedStateCode] = useState<string>("WA");
 
   const filtered = useMemo(
     () => applyFilters(leads, filters),
@@ -54,7 +57,19 @@ export default function LeadsPage() {
               Pipeline
             </Button>
           </div>
-          <EnrichButton onDone={refresh} />
+          <Select
+            value={selectedStateCode}
+            onChange={(e) => setSelectedStateCode(e.target.value)}
+            className="min-w-[120px]"
+          >
+            <option value="all">All States</option>
+            {US_STATES.map(state => (
+              <option key={state.code} value={state.code}>
+                {state.name}
+              </option>
+            ))}
+          </Select>
+          <EnrichButton onDone={refresh} stateCode={selectedStateCode} />
         </div>
       </div>
 

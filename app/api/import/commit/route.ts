@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       return { status: "skipped", reason: "excluded or missing name/address", companyName: row.companyName, fmcsaMatched: false, geocoded: false };
     }
 
-    const fullAddress = [row.address, row.city, "WA", row.zip].filter(Boolean).join(", ");
+    const fullAddress = [row.address, row.city, row.state ?? "WA", row.zip].filter(Boolean).join(", ");
     const geo = await geocodeAddress(fullAddress).catch((err) => {
       console.error(`[import] geocode failed for "${row.companyName}":`, err);
       return null;
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
           name: row.companyName,
           address: row.address,
           ...(row.city ? { city: row.city } : {}),
-          state: "WA",
+          state: row.state ?? "WA",
           zip: row.zip,
           phone: row.phone,
           lat: geo?.lat,

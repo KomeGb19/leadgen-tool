@@ -3,43 +3,24 @@ import { isSupabaseConfigured, supabaseServer } from "@/lib/supabase";
 import { searchPlaces, staticSatelliteUrl } from "@/lib/places";
 import { searchCarrierByName, pickBestMatch } from "@/lib/fmcsa";
 import { scoreLead } from "@/lib/scoring";
+import { getStateName } from "@/lib/stateUtils";
 
-/** Extract city name from query strings like "septic tank pumping Seattle WA" */
+/** Extract city name from query strings. For our simplified format, we don't use a specific city. */
 function extractCityFromQuery(query: string): string {
-  // Query format: "[service] [city] [state]" or "[service] [city] WA"
-  const parts = query.split(' ');
-  // City is typically the second-to-last part (before state) or we can look for known city names
-  // Simpler approach: assume format is consistent and city is at index 2 for our queries
-  // "septic tank pumping Seattle WA" -> [0]septic [1]tank [2]pumping [3]Seattle [4]WA
-  // Actually, let's be more robust and look for the part that's not a service word or state
-  const serviceWords = ['septic', 'tank', 'pumping', 'grease', 'trap', 'cleaning'];
-  const stateWords = ['WA', 'Washington'];
-
-  for (const part of parts) {
-    const lowerPart = part.toLowerCase();
-    if (!serviceWords.includes(lowerPart) && !stateWords.includes(lowerPart) && !stateWords.includes(part)) {
-      return part;
-    }
-  }
-
-  // Fallback: return empty string if no city found (should not happen with our queries)
+  // We're using format: "[service] [stateName]" so there's no specific city to extract
   return '';
 }
 
-const QUERIES = [
-  "septic tank pumping Seattle WA",
-  "septic tank pumping Spokane WA",
-  "septic tank pumping Tacoma WA",
-  "septic tank pumping Vancouver WA",
-  "septic tank pumping Bellevue WA",
-  "grease trap cleaning Seattle WA",
-  "grease trap cleaning Spokane WA",
-  "grease trap cleaning Tacoma WA",
-  "grease trap cleaning Vancouver WA",
-  "grease trap cleaning Bellevue WA"
-];
+/** Generate search queries for a given state */
+function generateQueriesForState(stateCode: string): string[] {
+  const stateName = getStateName(stateCode);
+  return [
+    `septic tank pumping ${stateName}`,
+    `grease trap cleaning ${stateName}`
+  ];
+}
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     if (!isSupabaseConfigured()) {
       return NextResponse.json(
@@ -51,11 +32,17 @@ export async function POST() {
       return NextResponse.json({ error: "GOOGLE_PLACES_API_KEY is not set" }, { status: 400 });
     }
 
+    // Get state from request body, default to WA
+    const body = await request.json();
+    const stateCode = body.state ?? "WA";
+
     const supabase = supabaseServer();
     let inserted = 0;
     let matched = 0;
 
-    for (const q of QUERIES) {
+    const queries = generateQueriesForState(stateCode);
+
+    for (const q of queries) {
       const places = await searchPlaces(q);
 
       for (const place of places) {
@@ -70,7 +57,7 @@ export async function POST() {
                 name: place.name,
                 address: place.address,
                 ...(city ? { city } : {}),
-                state: "WA",
+                state: stateCode,
                 lat: place.lat,
                 lng: place.lng,
                 phone: place.phone,
