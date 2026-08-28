@@ -5,6 +5,7 @@ const HEADER_ALIASES: Record<string, string[]> = {
   companyName: ["company", "company name", "business name", "name", "dba"],
   address: ["address", "mailing address", "street address", "street"],
   city: ["city", "city (mailing)", "mailing city"],
+  state: ["state", "st", "state (mailing)"],
   zip: ["zip", "zip code", "zipcode", "postal code", "zip (mailing)"],
   phone: ["phone", "phone number", "telephone", "contact phone"],
   categories: ["categories", "category", "services", "type"],
@@ -43,6 +44,7 @@ export function parseHaulerCsv(fileText: string): ParsedRow[] {
   const companyCol = findColumn(headers, "companyName");
   const addressCol = findColumn(headers, "address");
   const cityCol = findColumn(headers, "city");
+  const stateCol = findColumn(headers, "state");
   const zipCol = findColumn(headers, "zip");
   const phoneCol = findColumn(headers, "phone");
   const categoriesCol = findColumn(headers, "categories");
@@ -60,6 +62,7 @@ export function parseHaulerCsv(fileText: string): ParsedRow[] {
       companyName: companyName || "Unknown",
       address: address || "",
       city: cityCol ? row[cityCol]?.trim() : undefined,
+      state: stateCol ? row[stateCol]?.trim() : undefined,
       zip: zipCol ? row[zipCol]?.trim() : undefined,
       phone: phoneCol ? row[phoneCol]?.trim() : undefined,
       categories: categoriesCol ? parseCategories(row[categoriesCol]) : [],

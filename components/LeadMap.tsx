@@ -15,8 +15,8 @@ import "leaflet/dist/leaflet.css";
 
 const tierColor = { hot: "#E8A33D", warm: "#4A90D9", cold: "#8A9199" } as const;
 
-// Center of Washington state for better initial view of the entire state
-const WASHINGTON_CENTER: [number, number] = [47.4009, -121.4905];
+// Center of continental USA for better initial view of the entire country
+const MAP_CENTER: [number, number] = [39.8283, -98.5795];
 
 // Imported leads can have null lat/lng if geocoding failed or hasn't run yet —
 // Leaflet throws hard on a null coordinate instead of skipping it, so filter
@@ -57,15 +57,15 @@ export default function LeadMap({
 
   return (
     <MapContainer
-      center={WASHINGTON_CENTER}
-      zoom={7}
+      center={MAP_CENTER}
+      zoom={3}
       scrollWheelZoom
       className="h-full w-full"
       style={{ background: "#14171B" }}
     >
       <TileLayer
-        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        url={`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${process.env.NEXT_PUBLIC_CARTO_API_KEY ?? ""}`}
       />
       {plottable.map((lead) => {
         const tier = scoreTier(lead.score);

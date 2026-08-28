@@ -62,6 +62,7 @@ export interface LeadFilters {
   category: "all" | "septic" | "grease_trap" | "both";
   status: "all" | LeadStatus;
   source: "all" | LeadSource;
+  state: "all" | string;
   sortBy: "score" | "fleetSize" | "name" | "updatedAt";
   sortDir: "asc" | "desc";
 }
@@ -74,6 +75,7 @@ export interface ParsedRow {
   companyName: string;
   address: string;
   city?: string;
+  state?: string;
   zip?: string;
   phone?: string;
   categories: RawCategory[];
