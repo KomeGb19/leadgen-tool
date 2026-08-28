@@ -52,7 +52,7 @@ export function FiltersBar({
     } catch (error) {
       push(
         `Failed to export CSV: ${error instanceof Error ? error.message : String(error)}`,
-        "error"
+        "error",
       );
     } finally {
       setCsvLoading(false);
@@ -67,7 +67,7 @@ export function FiltersBar({
     } catch (error) {
       push(
         `Failed to export Excel: ${error instanceof Error ? error.message : String(error)}`,
-        "error"
+        "error",
       );
     } finally {
       setExcelLoading(false);
@@ -76,7 +76,7 @@ export function FiltersBar({
 
   return (
     <div className="flex flex-col gap-3 rounded border border-line bg-panel p-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2">
         <Input
           placeholder="Search company, address, DOT#..."
           value={filters.query}
@@ -125,9 +125,7 @@ export function FiltersBar({
 
         <Select
           value={filters.state}
-          onChange={(e) =>
-            set("state", e.target.value as LeadFilters["state"])
-          }
+          onChange={(e) => set("state", e.target.value as LeadFilters["state"])}
         >
           <option value="all">All states</option>
           {US_STATES.map((state) => (

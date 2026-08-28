@@ -58,7 +58,7 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
-          <StatsCards leads={leads} />
+          <StatsCards />
 
           <div className="grid grid-cols-3 gap-4">
             <Card className="col-span-2">
@@ -69,7 +69,7 @@ export default function DashboardPage() {
                 </span>
               </CardHeader>
               <CardContent className="h-[420px] p-2 pt-2">
-                <LeadMapClient leads={leads} onSelect={setSelected} />
+                <LeadMapClient onSelect={setSelected} />
               </CardContent>
             </Card>
 

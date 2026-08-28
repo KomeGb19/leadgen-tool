@@ -11,7 +11,7 @@ const variants: Record<Variant, string> = {
   warn: "bg-warn/15 text-warn border border-warn/30",
   danger: "bg-danger/15 text-danger border border-danger/30",
   info: "bg-info/15 text-info border border-info/30",
-  outline: "bg-transparent text-muted border border-line",
+  outline: "bg-ink/70 text-amber border border-line",
 };
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {

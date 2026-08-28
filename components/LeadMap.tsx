@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import useSWR from "swr";
 import {
   MapContainer,
   TileLayer,
@@ -11,6 +11,7 @@ import {
 import { scoreTier } from "@/lib/scoring";
 import { fleetSize } from "@/lib/filters";
 import type { Lead } from "@/lib/types";
+import {useEffect} from "react"
 import "leaflet/dist/leaflet.css";
 
 const tierColor = { hot: "#E8A33D", warm: "#4A90D9", cold: "#8A9199" } as const;
@@ -45,15 +46,22 @@ function FitBounds({ leads }: { leads: Lead[] }) {
   return null;
 }
 
-export default function LeadMap({
-  leads,
-  onSelect,
-}: {
-  leads: Lead[];
-  onSelect: (lead: Lead) => void;
-}) {
-  const plottable = leads.filter(hasCoords);
-  const missingCount = leads.length - plottable.length;
+// Fetcher function for SWR
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+export default function LeadMap({ onSelect }: { onSelect: (lead: Lead) => void }) {
+  const { data: leads, error, isLoading } = useSWR<{ leads: Lead[]; source: string }>(
+    "/api/leads",
+    fetcher
+  );
+
+  if (error) return <div>Failed to load leads</div>;
+  if (isLoading) return <div>Loading leads...</div>;
+
+  const leadsData = leads?.leads ?? [];
+
+  const plottable = leadsData.filter(hasCoords);
+  const missingCount = leadsData.length - plottable.length;
 
   return (
     <MapContainer
@@ -93,7 +101,7 @@ export default function LeadMap({
           </CircleMarker>
         );
       })}
-      <FitBounds leads={leads} />
+      <FitBounds leads={leadsData} />
       {missingCount > 0 && (
         <div className="leaflet-bottom leaflet-left pointer-events-none m-2 rounded bg-ink/80 px-2 py-1 font-mono text-[10px] text-muted">
           {missingCount} lead{missingCount === 1 ? "" : "s"} missing coordinates

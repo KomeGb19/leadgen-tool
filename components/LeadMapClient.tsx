@@ -13,15 +13,13 @@ const LeadMap = dynamic(() => import("./LeadMap"), {
 });
 
 export function LeadMapClient({
-  leads,
   onSelect,
 }: {
-  leads: Lead[];
   onSelect: (lead: Lead) => void;
 }) {
   return (
     <div className="relative isolate z-0 h-full w-full overflow-hidden rounded">
-      <LeadMap leads={leads} onSelect={onSelect} />
+      <LeadMap onSelect={onSelect} />
     </div>
   );
 }
