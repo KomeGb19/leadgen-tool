@@ -75,6 +75,7 @@ export interface ParsedRow {
   companyName: string;
   address: string;
   city?: string;
+  state?: string;
   zip?: string;
   phone?: string;
   categories: RawCategory[];
