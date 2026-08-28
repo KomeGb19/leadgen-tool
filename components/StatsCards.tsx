@@ -2,8 +2,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { fleetSize } from "@/lib/filters";
 import { scoreTier } from "@/lib/scoring";
 import type { Lead } from "@/lib/types";
+import useSWR from "swr";
 
-export function StatsCards({ leads }: { leads: Lead[] }) {
+// Fetcher function for SWR
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+export function StatsCards() {
+  const { data: leadsData, error, isLoading } = useSWR<{ leads: Lead[] }>(
+    "/api/leads",
+    fetcher
+  );
+
+  if (error) return <div>Failed to load stats</div>;
+  if (isLoading) return <div>Loading stats...</div>;
+
+  const leads = leadsData?.leads ?? [];
   const total = leads.length;
   const hot = leads.filter((l) => scoreTier(l.score) === "hot").length;
   const verified = leads.filter((l) => l.fmcsa).length;
