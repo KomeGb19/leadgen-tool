@@ -3,15 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { LogOut } from "lucide-react";
 
 const NAV = [
   { href: "/", label: "Dashboard" },
   { href: "/leads", label: "Leads" },
-  { href: "/import", label: "Import" }, // ← add this line
+  { href: "/import", label: "Import" },
 ];
 
 export function SideRail() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
+
   return (
     <aside className="flex h-full fixed w-56 flex-shrink-0 flex-col border-r border-line bg-rail">
       <div className="border-b border-line px-4 py-5">
@@ -51,6 +55,32 @@ export function SideRail() {
         <div className="mt-1 font-mono text-[10px] text-muted">
           Septic · Grease trap
         </div>
+
+        {user && (
+          <>
+            <div className="mb-2 mt-6 text-xs font-mono text-amber">
+              {user.email ?? user.id?.slice(0, 8) ?? "User"}
+            </div>
+
+            <div className="bg-panel">
+              <button
+                onClick={async () => {
+                  try {
+                    await logout();
+                    // Reload to show login modal
+                    window.location.reload();
+                  } catch (err) {
+                    console.error("Logout failed:", err);
+                  }
+                }}
+                className="w-full hover:text-amber p-2 text-left text-xs font-mono text-muted flex justify-between "
+              >
+                Logout
+                <LogOut size={16} />
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </aside>
   );
