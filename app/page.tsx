@@ -12,6 +12,7 @@ import { EnrichButton } from "@/components/EnrichButton";
 import { useLeads } from "@/lib/useLeads";
 import { fleetSize } from "@/lib/filters";
 import { US_STATES } from "@/lib/stateUtils";
+import { Spinner } from "@/components/ui/spinner";
 import type { Lead } from "@/lib/types";
 
 export default function DashboardPage() {
@@ -53,8 +54,8 @@ export default function DashboardPage() {
       </div>
 
       {loading ? (
-        <div className="py-24 text-center font-mono text-xs text-muted">
-          Loading leads...
+        <div className="flex flex-col items-center justify-center py-24">
+          <Spinner className="h-8 w-8 text-muted" />
         </div>
       ) : (
         <>

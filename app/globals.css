@@ -21,6 +21,15 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
 /* Leaflet dark-mode polish */
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
