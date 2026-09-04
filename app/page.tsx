@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { supabaseBrowser } from "@/lib/supabase";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
@@ -19,6 +21,30 @@ export default function DashboardPage() {
   const { leads, loading, source, refresh, updateStatus, addNote } = useLeads();
   const [selected, setSelected] = useState<Lead | null>(null);
   const [selectedStateCode, setSelectedStateCode] = useState<string>("WA");
+  const searchParams = useSearchParams();
+
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = searchParams.get("token");
+    const type = searchParams.get("type");
+    if (token && type === "invite") {
+      const supabase = supabaseBrowser();
+      // Using 'any' type to workaround potential type definition issues with verifyOtp for invite type
+      supabase.auth
+        .verifyOtp({ token, type: "invite" } as any)
+        .then(({ error }) => {
+          if (error) {
+            console.error("Invite verification error:", error);
+          } else {
+            // Remove query params to avoid reuse
+            window.history.replaceState(null, "", window.location.pathname);
+            // Refresh the route to refetch data and update UI
+            router.refresh();
+          }
+        });
+    }
+  }, [searchParams]);
 
   const topLeads = [...leads].sort((a, b) => b.score - a.score).slice(0, 6);
 
@@ -43,7 +69,7 @@ export default function DashboardPage() {
             className="min-w-[120px]"
           >
             <option value="all">All States</option>
-            {US_STATES.map(state => (
+            {US_STATES.map((state) => (
               <option key={state.code} value={state.code}>
                 {state.name}
               </option>
