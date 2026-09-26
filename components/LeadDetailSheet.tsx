@@ -109,7 +109,7 @@ export function LeadDetailSheet({
               <InfoRow
                 label="Years in business"
                 value={
-                  company.yearsInBusiness
+                  company.yearsInBusiness !== null && company.yearsInBusiness !== undefined
                     ? `${company.yearsInBusiness} yrs`
                     : "Unknown"
                 }

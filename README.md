@@ -20,8 +20,9 @@ wiring any API keys.
 1. Create a Supabase project, run `supabase/schema.sql` in the SQL editor.
 2. Get a free FMCSA webKey: mobile.fmcsa.dot.gov → sign in via Login.gov.
 3. Enable "Places API (New)" and "Maps Static API" in Google Cloud Console.
-4. Copy `.env.example` to `.env.local` and fill in all values.
-5. `npm run dev`, go to the Dashboard, click **Run lead discovery** — this
+4. Get an Exa API key from https://exa.ai/
+5. Copy `.env.example` to `.env.local` and fill in all values.
+6. `npm run dev`, go to the Dashboard, click **Run lead discovery** — this
    calls `/api/enrich`, which searches Google Places for septic/grease
    companies, matches each against FMCSA by name, and writes everything to
    Supabase. Reload and you're on live data (the "Demo data" badge disappears).

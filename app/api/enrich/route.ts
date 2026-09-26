@@ -4,6 +4,7 @@ import { searchPlaces, staticSatelliteUrl } from "@/lib/places";
 import { searchCarrierByName, pickBestMatch } from "@/lib/fmcsa";
 import { scoreLead } from "@/lib/scoring";
 import { getStateName } from "@/lib/stateUtils";
+import { searchCompanyFoundedYear, calculateYearsInBusiness } from "@/lib/exa";
 
 /** Extract city name from query strings. For our simplified format, we don't use a specific city. */
 function extractCityFromQuery(query: string): string {
@@ -50,7 +51,19 @@ export async function POST(request: Request) {
           const category = q.includes("septic") ? "septic" : "grease_trap";
 
           const city = extractCityFromQuery(q);
-          const { data: company } = await supabase
+          // Try to get founding year from Exa
+          let yearsInBusiness: number | undefined;
+          try {
+            const exaResult = await searchCompanyFoundedYear(place.name, place.address);
+            if (exaResult?.founded_year !== null && exaResult?.founded_year !== undefined) {
+              yearsInBusiness = calculateYearsInBusiness(exaResult.founded_year);
+            }
+          } catch (err) {
+            console.error("[enrich] Exa lookup failed:", err);
+            // Continue without years_in_business
+          }
+
+          const { data: company, error: companyError } = await supabase
             .from("companies")
             .upsert(
               {
@@ -66,14 +79,31 @@ export async function POST(request: Request) {
                 category,
                 review_count: place.userRatingCount,
                 rating: place.rating,
+                years_in_business: yearsInBusiness,
               },
               { onConflict: "name,address" }
             )
             .select()
             .single();
 
-          if (!company) continue;
+          if (companyError) {
+            console.error(`[enrich] company upsert error for ${place.name}:`, companyError);
+            // Continue to next place rather than failing the whole batch
+            continue;
+          }
+
+          if (!company) {
+            console.warn(`[enrich] no company data returned for ${place.name} (possibly duplicate)`);
+            continue;
+          }
+
+          if (!company) {
+            console.warn(`[enrich] no company data returned for ${place.name} (possibly duplicate)`);
+            continue;
+          }
+
           inserted++;
+          console.log(`[enrich] inserted/updated company: ${place.name}, years_in_business: ${yearsInBusiness}`);
 
           let fmcsa;
           try {
