@@ -2,22 +2,52 @@ import { NextResponse } from "next/server";
 import { isSupabaseConfigured, supabaseServer } from "@/lib/supabase";
 import { mockLeads } from "@/lib/mock-data";
 import { scoreLead } from "@/lib/scoring";
+import { getUserPermissionsFromRequest } from "@/lib/auth-server"
 import type { Lead } from "@/lib/types";
 
-export async function GET() {
+export async function GET(request: Request) {
+  // If Supabase not configured, return mock data
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ leads: mockLeads, source: "mock" });
   }
 
-  const supabase = supabaseServer();
-  const { data: companies, error } = await supabase
-    .from("companies")
-    .select("*, fmcsa_records(*), imagery(*), leads(*), lead_notes(*)");
+  // Get user permissions from request (uses headers or JWT via getUserPermissionsFromRequest)
+  const userPermissions = await getUserPermissionsFromRequest(request);
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  // If no valid user session, return empty leads (could also return 401, but we follow existing pattern)
+  if (!userPermissions) {
+    return NextResponse.json({ leads: [], source: "supabase" });
   }
 
+  const supabase = supabaseServer();
+
+  // Start building the query from companies with related data
+  let query = supabase
+    .from("companies")
+    .select(`
+      *,
+      fmcsa_records(*),
+      imagery(*),
+      leads(*),
+      lead_notes(*)
+    `);
+  
+
+  // Apply state filter for state_user (non-super) with defined allowed states
+  if (!userPermissions.isSuperUser && userPermissions.allowedStates !== null) {
+    // Filter to only include companies from allowed states
+    query = query.in('state', userPermissions.allowedStates);
+  }
+  // If isSuperUser === true OR allowedStates === null (should not happen for state_user), no filter needed
+
+  const { data: companies, error } = await query;
+
+  if (error) {
+    console.error("[leads] error fetching companies:", error);
+    return NextResponse.json({ error: "Failed to fetch leads" }, { status: 500 });
+  }
+
+  // Map company rows to Lead shape (same as before)
   const leads: Lead[] = (companies ?? []).map((c: any) => {
     const fmcsaRow = c.fmcsa_records?.[0];
     const imageryRow = c.imagery?.[0];

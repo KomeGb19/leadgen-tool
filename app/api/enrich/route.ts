@@ -5,6 +5,7 @@ import { searchCarrierByName, pickBestMatch } from "@/lib/fmcsa";
 import { scoreLead } from "@/lib/scoring";
 import { getStateName } from "@/lib/stateUtils";
 import { searchCompanyFoundedYear, calculateYearsInBusiness } from "@/lib/exa";
+import { getUserPermissionsFromRequest } from "@/lib/auth-server"
 
 /** Extract city name from query strings. For our simplified format, we don't use a specific city. */
 function extractCityFromQuery(query: string): string {
@@ -33,9 +34,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "GOOGLE_PLACES_API_KEY is not set" }, { status: 400 });
     }
 
+    // Get user permissions from request
+    const userPermissions = await getUserPermissionsFromRequest(request);
+
+    // If no valid user session, return unauthorized
+    if (!userPermissions) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     // Get state from request body, default to WA
     const body = await request.json();
     const stateCode = body.state ?? "WA";
+
+    // Check if user has access to this state
+    const hasStateAccess =
+      userPermissions.isSuperUser ||
+      (userPermissions.allowedStates !== null && userPermissions.allowedStates.includes(stateCode));
+
+    if (!hasStateAccess) {
+      return NextResponse.json({
+        error: `Insufficient permissions to access state: ${stateCode}`
+      }, { status: 403 });
+    }
 
     const supabase = supabaseServer();
     let inserted = 0;

@@ -63,6 +63,28 @@ create table lead_notes (
   created_at timestamptz default now()
 );
 
+-- RBAC Tables
+create table user_roles (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  description text,
+  created_at timestamptz default now()
+);
+
+create table user_state_permissions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null, -- references auth.users(id)
+  role_id uuid not null references user_roles(id),
+  state_code text, -- NULL indicates access to all states (super user)
+  created_at timestamptz default now(),
+  unique(user_id, state_code) -- prevent duplicate permissions
+);
+
+-- Insert default roles
+insert into user_roles (name, description) values
+  ('super_user', 'Can access data from all states'),
+  ('state_user', 'Can access data from specific states only');
+
 -- Optional but recommended: enable RLS and open read access for the anon key,
 -- restrict writes to the service role (used server-side only by API routes).
 alter table companies enable row level security;
@@ -70,8 +92,44 @@ alter table fmcsa_records enable row level security;
 alter table imagery enable row level security;
 alter table leads enable row level security;
 alter table lead_notes enable row level security;
+alter table user_roles enable row level security;
+alter table user_state_permissions enable row level security;
 
-create policy "public read companies" on companies for select using (true);
+-- RLS Policies for Companies
+create policy "companies_select_super_user" on companies
+  for select
+  using (
+    EXISTS (
+      SELECT 1 FROM user_state_permissions usp
+      JOIN user_roles ur ON usp.role_id = ur.id
+      WHERE usp.user_id = auth.uid()
+        AND ur.name = 'super_user'
+    )
+  );
+
+create policy "companies_select_state_user" on companies
+  for select
+  using (
+    EXISTS (
+      SELECT 1 FROM user_state_permissions usp
+      JOIN user_roles ur ON usp.role_id = ur.id
+      WHERE usp.user_id = auth.uid()
+        AND (usp.state_code IS NULL OR companies.state = usp.state_code)
+        AND ur.name = 'state_user'
+    )
+  );
+
+-- RLS Policies for user_roles (read-only for authenticated users)
+create policy "user_roles_select" on user_roles
+  for select
+  using (auth.role() = 'authenticated');
+
+-- RLS Policies for user_state_permissions (users can only see their own permissions)
+create policy "user_state_permissions_select_own" on user_state_permissions
+  for select
+  using (user_id = auth.uid());
+
+-- RLS Policies for other tables (maintain existing permissive policies for now)
 create policy "public read fmcsa" on fmcsa_records for select using (true);
 create policy "public read imagery" on imagery for select using (true);
 create policy "public read leads" on leads for select using (true);

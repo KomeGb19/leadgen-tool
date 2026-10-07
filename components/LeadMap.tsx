@@ -13,6 +13,7 @@ import { fleetSize } from "@/lib/filters";
 import type { Lead } from "@/lib/types";
 import {useEffect} from "react"
 import "leaflet/dist/leaflet.css";
+import { authFetch } from "@/lib/auth";
 
 const tierColor = { hot: "#E8A33D", warm: "#4A90D9", cold: "#8A9199" } as const;
 
@@ -46,8 +47,8 @@ function FitBounds({ leads }: { leads: Lead[] }) {
   return null;
 }
 
-// Fetcher function for SWR
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+// Fetcher function for SWR that includes auth
+const fetcher = (url: string) => authFetch(url).then(async (res) => res.json());
 
 export default function LeadMap({ onSelect }: { onSelect: (lead: Lead) => void }) {
   const { data: leads, error, isLoading } = useSWR<{ leads: Lead[]; source: string }>(
