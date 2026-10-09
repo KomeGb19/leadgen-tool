@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/Toast";
 import type { ParsedRow, ParseResult } from "@/lib/types";
+import { authFetch } from "@/lib/auth";
 
 export default function ImportPage() {
   const [dragOver, setDragOver] = useState(false);
@@ -23,7 +24,7 @@ export default function ImportPage() {
       try {
         const formData = new FormData();
         formData.append("file", file);
-        const res = await fetch("/api/import/parse", {
+        const res = await authFetch("/api/import/parse", {
           method: "POST",
           body: formData,
         });
@@ -56,7 +57,7 @@ export default function ImportPage() {
     if (!result) return;
     setCommitting(true);
     try {
-      const res = await fetch("/api/import/commit", {
+      const res = await authFetch("/api/import/commit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
