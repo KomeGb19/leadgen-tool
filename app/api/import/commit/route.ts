@@ -4,6 +4,7 @@ import { geocodeAddress } from "@/lib/geocode";
 import { searchCarrierByName, pickBestMatch } from "@/lib/fmcsa";
 import { scoreLead } from "@/lib/scoring";
 import { toAppCategory } from "@/lib/types";
+import { getUserPermissionsFromRequest } from "@/lib/auth-server"
 import type { ParsedRow } from "@/lib/types";
 
 // Runs `limit` rows at a time instead of one-at-a-time — cuts a 56-row
@@ -34,10 +35,34 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Supabase isn't configured — see .env.example" }, { status: 400 });
   }
 
+  // Get user permissions from request
+  const userPermissions = await getUserPermissionsFromRequest(req);
+
+  // If no valid user session, return unauthorized
+  if (!userPermissions) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { rows }: { rows: ParsedRow[]; sourceLabel: string } = await req.json();
   const supabase = supabaseServer();
 
   const results = await pool(rows, 8, async (row): Promise<RowResult> => {
+    // Check if user has access to this row's state
+    const rowState = row.state ?? "WA";
+    const hasStateAccess =
+      userPermissions.isSuperUser ||
+      (userPermissions.allowedStates !== null && userPermissions.allowedStates.includes(rowState));
+
+    if (!hasStateAccess) {
+      return {
+        status: "skipped",
+        reason: `No access to state: ${rowState}`,
+        companyName: row.companyName,
+        fmcsaMatched: false,
+        geocoded: false
+      };
+    }
+
     if (!row.include || !row.companyName || !row.address) {
       return { status: "skipped", reason: "excluded or missing name/address", companyName: row.companyName, fmcsaMatched: false, geocoded: false };
     }

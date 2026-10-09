@@ -9,10 +9,13 @@
     color-scheme: dark;
   }
   body {
-    @apply bg-ink text-paper font-body antialiased;
+    @apply bg-ink text-paper font-sans antialiased;
   }
   ::selection {
     @apply bg-amber/30 text-paper;
+  }
+  .bg-background {
+    @apply bg-ink;
   }
 }
 

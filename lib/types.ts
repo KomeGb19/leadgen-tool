@@ -98,3 +98,13 @@ export function toAppCategory(cats: RawCategory[]): "septic" | "grease_trap" | "
   if (hasGrease) return "grease_trap";
   return "septic"; // default bucket for septic-adjacent (portable toilet, vessel, other)
 }
+
+/** User role types */
+export type UserRole = 'super_user' | 'state_user'
+
+/** User permissions interface */
+export interface UserPermissions {
+  isSuperUser: boolean
+  role: UserRole
+  allowedStates: string[] | null // null means all states (super user)
+}

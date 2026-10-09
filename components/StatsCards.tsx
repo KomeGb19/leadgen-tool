@@ -3,9 +3,10 @@ import { fleetSize } from "@/lib/filters";
 import { scoreTier } from "@/lib/scoring";
 import type { Lead } from "@/lib/types";
 import useSWR from "swr";
+import { authFetch } from "@/lib/auth";
 
-// Fetcher function for SWR
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+// Fetcher function for SWR that includes auth
+const fetcher = (url: string) => authFetch(url).then(async (res) => res.json());
 
 export function StatsCards() {
   const { data: leadsData, error, isLoading } = useSWR<{ leads: Lead[] }>(

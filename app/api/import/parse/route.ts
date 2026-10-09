@@ -2,8 +2,17 @@ import { NextResponse } from "next/server";
 import { parseHaulerPdf } from "@/lib/import/pdf-king-county";
 import { parseHaulerCsv } from "@/lib/import/csv-parser";
 import type { ParseResult } from "@/lib/types";
+import { getUserPermissionsFromRequest } from "@/lib/auth-server"
 
 export async function POST(req: Request) {
+  // Get user permissions from request
+  const userPermissions = await getUserPermissionsFromRequest(req);
+
+  // If no valid user session, return unauthorized
+  if (!userPermissions) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
   if (!file) {
