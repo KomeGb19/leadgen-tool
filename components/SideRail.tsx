@@ -6,15 +6,19 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut } from "lucide-react";
 
-const NAV = [
-  { href: "/", label: "Dashboard" },
-  { href: "/leads", label: "Leads" },
-  { href: "/import", label: "Import" },
-];
-
 export function SideRail() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, isSuperUser } = useAuth();
+
+  const baseNav = [
+    { href: "/", label: "Dashboard" },
+    { href: "/leads", label: "Leads" },
+    { href: "/import", label: "Import" },
+  ];
+
+  const navItems = isSuperUser()
+    ? [...baseNav, { href: "/settings", label: "Settings" }]
+    : baseNav;
 
   return (
     <aside className="flex h-full fixed w-56 flex-shrink-0 flex-col border-r border-line bg-rail">
@@ -28,7 +32,7 @@ export function SideRail() {
       </div>
 
       <nav className="flex flex-col gap-0.5 p-2">
-        {NAV.map((item) => {
+        {navItems.map((item) => {
           const active = pathname === item.href;
           return (
             <Link

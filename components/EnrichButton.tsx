@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/Toast";
 import { getStateName } from "@/lib/stateUtils";
+import { authFetch } from "@/lib/auth";
 
 export function EnrichButton({ onDone, stateCode = "WA" }: { onDone?: () => void; stateCode?: string }) {
   const [loading, setLoading] = useState(false);
@@ -12,9 +13,8 @@ export function EnrichButton({ onDone, stateCode = "WA" }: { onDone?: () => void
   async function run() {
     setLoading(true);
     try {
-      const res = await fetch("/api/enrich", {
+      const res = await authFetch("/api/enrich", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ state: stateCode })
       });
       const data = await res.json();

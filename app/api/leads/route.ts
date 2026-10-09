@@ -2,26 +2,28 @@ import { NextResponse } from "next/server";
 import { isSupabaseConfigured, supabaseServer } from "@/lib/supabase";
 import { mockLeads } from "@/lib/mock-data";
 import { scoreLead } from "@/lib/scoring";
-import { getUserPermissionsFromRequest } from "@/lib/auth-server"
+import { getUserPermissionsFromRequest } from "@/lib/auth-server";
 import type { Lead } from "@/lib/types";
 
+// PostgREST returns a single object for a to-one embed (the child's FK is
+// unique), and an array for a to-many embed. Normalize both to "one row".
+function one<T>(x: T | T[] | null | undefined): T | undefined {
+  if (Array.isArray(x)) return x[0];
+  return x ?? undefined;
+}
+
 export async function GET(request: Request) {
-  // If Supabase not configured, return mock data
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ leads: mockLeads, source: "mock" });
   }
 
-  // Get user permissions from request (uses headers or JWT via getUserPermissionsFromRequest)
   const userPermissions = await getUserPermissionsFromRequest(request);
-
-  // If no valid user session, return empty leads (could also return 401, but we follow existing pattern)
   if (!userPermissions) {
     return NextResponse.json({ leads: [], source: "supabase" });
   }
 
   const supabase = supabaseServer();
 
-  // Start building the query from companies with related data
   let query = supabase
     .from("companies")
     .select(`
@@ -31,14 +33,10 @@ export async function GET(request: Request) {
       leads(*),
       lead_notes(*)
     `);
-  
 
-  // Apply state filter for state_user (non-super) with defined allowed states
   if (!userPermissions.isSuperUser && userPermissions.allowedStates !== null) {
-    // Filter to only include companies from allowed states
-    query = query.in('state', userPermissions.allowedStates);
+    query = query.in("state", userPermissions.allowedStates);
   }
-  // If isSuperUser === true OR allowedStates === null (should not happen for state_user), no filter needed
 
   const { data: companies, error } = await query;
 
@@ -47,26 +45,32 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Failed to fetch leads" }, { status: 500 });
   }
 
-  // Map company rows to Lead shape (same as before)
   const leads: Lead[] = (companies ?? []).map((c: any) => {
-    const fmcsaRow = c.fmcsa_records?.[0];
-    const imageryRow = c.imagery?.[0];
-    const leadRow = c.leads?.[0];
+    const fmcsaRow = one<any>(c.fmcsa_records);
+    const imageryRow = one<any>(c.imagery);
+    const leadRow = one<any>(c.leads);
 
-    const fmcsa = fmcsaRow && {
-      usdotNumber: fmcsaRow.usdot_number,
-      mcNumber: fmcsaRow.mc_number,
-      powerUnits: fmcsaRow.power_units,
-      drivers: fmcsaRow.drivers,
-      operatingStatus: fmcsaRow.operating_status,
-      mcs150Date: fmcsaRow.mcs150_date,
-    };
-    const imagery = imageryRow && {
-      imageUrl: imageryRow.image_url,
-      capturedDate: imageryRow.captured_date,
-      source: imageryRow.source,
-      truckCountEstimate: imageryRow.truck_count_estimate,
-    };
+    const fmcsa =
+      fmcsaRow && fmcsaRow.usdot_number != null
+        ? {
+            usdotNumber: fmcsaRow.usdot_number,
+            mcNumber: fmcsaRow.mc_number ?? undefined,
+            powerUnits: fmcsaRow.power_units ?? undefined,
+            drivers: fmcsaRow.drivers ?? undefined,
+            operatingStatus: fmcsaRow.operating_status ?? undefined,
+            cargoTypes: fmcsaRow.cargo_types ?? undefined,
+            mcs150Date: fmcsaRow.mcs150_date ?? undefined,
+          }
+        : undefined;
+
+    const imagery = imageryRow
+      ? {
+          imageUrl: imageryRow.image_url ?? undefined,
+          capturedDate: imageryRow.captured_date ?? undefined,
+          source: imageryRow.source ?? undefined,
+          truckCountEstimate: imageryRow.truck_count_estimate ?? undefined,
+        }
+      : undefined;
 
     const company = {
       id: c.id,
@@ -96,7 +100,10 @@ export async function GET(request: Request) {
       status: leadRow?.status ?? "new",
       notes: (c.lead_notes ?? [])
         .map((n: any) => ({ id: n.id, body: n.body, author: n.author, createdAt: n.created_at }))
-        .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+        .sort(
+          (a: any, b: any) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        ),
       updatedAt: leadRow?.updated_at ?? c.created_at,
     };
   });

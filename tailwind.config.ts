@@ -19,6 +19,7 @@ export default {
         info: "#4A90D9",
       },
       fontFamily: {
+        sans: ['var(--font-sans)', 'sans-serif'],
         display: ["'Barlow Condensed'", "sans-serif"],
         body: ["'Inter'", "sans-serif"],
         mono: ["'IBM Plex Mono'", "monospace"],
