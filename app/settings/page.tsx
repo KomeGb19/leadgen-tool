@@ -16,12 +16,14 @@ export default function SettingsPage() {
   const { user, isSuperUser } = useAuth();
   const router = useRouter();
 
-  const [users, setUsers] = useState<Array<{
-    id: string;
-    email: string;
-    role: "super_user" | "state_user" | null;
-    allowedStates: string[] | null;
-  }>>([]);
+  const [users, setUsers] = useState<
+    Array<{
+      id: string;
+      email: string;
+      role: "super_user" | "state_user" | null;
+      allowedStates: string[] | null;
+    }>
+  >([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [formLoading, setFormLoading] = useState<boolean>(false);
@@ -29,17 +31,64 @@ export default function SettingsPage() {
 
   // Form state
   const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [selectedRole, setSelectedRole] = useState<"super_user" | "state_user">("state_user");
+  const [selectedRole, setSelectedRole] = useState<"super_user" | "state_user">(
+    "state_user",
+  );
   const [stateCodes, setStateCodes] = useState<string[]>([]);
   const [stateInput, setStateInput] = useState<string>("");
 
   // US state codes for dropdown (can be expanded)
   const US_STATES = [
-    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
-    "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
-    "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
-    "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
-    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+    "AL",
+    "AK",
+    "AZ",
+    "AR",
+    "CA",
+    "CO",
+    "CT",
+    "DE",
+    "FL",
+    "GA",
+    "HI",
+    "ID",
+    "IL",
+    "IN",
+    "IA",
+    "KS",
+    "KY",
+    "LA",
+    "ME",
+    "MD",
+    "MA",
+    "MI",
+    "MN",
+    "MS",
+    "MO",
+    "MT",
+    "NE",
+    "NV",
+    "NH",
+    "NJ",
+    "NM",
+    "NY",
+    "NC",
+    "ND",
+    "OH",
+    "OK",
+    "OR",
+    "PA",
+    "RI",
+    "SC",
+    "SD",
+    "TN",
+    "TX",
+    "UT",
+    "VT",
+    "VA",
+    "WA",
+    "WV",
+    "WI",
+    "WY",
   ];
 
   useEffect(() => {
@@ -161,7 +210,8 @@ export default function SettingsPage() {
           User Management
         </h1>
         <p className="mt-1 text-sm text-muted">
-          Manage user roles and state permissions. Only super users can access this page.
+          Manage user roles and state permissions. Only super users can access
+          this page.
         </p>
       </div>
 
@@ -198,13 +248,19 @@ export default function SettingsPage() {
                 <tbody className="divide-y divide-border">
                   {users.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-3 py-2 text-center text-muted">
+                      <td
+                        colSpan={4}
+                        className="px-3 py-2 text-center text-muted"
+                      >
                         No users found
                       </td>
                     </tr>
                   ) : (
                     users.map((user) => (
-                      <tr key={user.id} className="border-b border-line last:border-0">
+                      <tr
+                        key={user.id}
+                        className="border-b border-line last:border-0"
+                      >
                         <td className="px-3 py-2 text-sm font-mono">
                           {user.email || user.id.slice(0, 8)}
                         </td>
@@ -218,7 +274,8 @@ export default function SettingsPage() {
                           )}
                         </td>
                         <td className="px-3 py-2 text-sm font-mono">
-                          {user.allowedStates && user.allowedStates.length > 0 ? (
+                          {user.allowedStates &&
+                          user.allowedStates.length > 0 ? (
                             <span className="flex flex-wrap gap-1">
                               {user.allowedStates.map((state) => (
                                 <Badge key={state} variant="outline">
@@ -235,10 +292,16 @@ export default function SettingsPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              if (window.confirm(`Remove all permissions for ${user.email}?`)) {
+                              if (
+                                window.confirm(
+                                  `Remove all permissions for ${user.email}?`,
+                                )
+                              ) {
                                 authFetch("/api/settings/permissions", {
                                   method: "DELETE",
-                                  headers: { "Content-Type": "application/json" },
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
                                   body: JSON.stringify({ userId: user.id }),
                                 })
                                   .then((res) => {
@@ -269,8 +332,10 @@ export default function SettingsPage() {
       )}
 
       {/* Permissions Form */}
-      <Card className="mb-6">
-        <h2 className="text-lg font-semibold mb-4">Assign Role & Permissions</h2>
+      <Card className="mb-6 p-4">
+        <h2 className="text-lg font-semibold mb-4">
+          Assign Role & Permissions
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Form Error */}
           {formError && (
@@ -357,7 +422,9 @@ export default function SettingsPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => {
-                            setStateCodes((prev) => prev.filter((c) => c !== code));
+                            setStateCodes((prev) =>
+                              prev.filter((c) => c !== code),
+                            );
                           }}
                           className="ml-1 p-0 hover:text-amber"
                         >
@@ -367,11 +434,13 @@ export default function SettingsPage() {
                     ))}
                   </div>
                   {/* Validation error for state codes */}
-                  {formError && selectedRole === "state_user" && stateCodes.length === 0 && (
-                    <div className="mt-2 text-sm text-red-500">
-                      Please add at least one state code
-                    </div>
-                  )}
+                  {formError &&
+                    selectedRole === "state_user" &&
+                    stateCodes.length === 0 && (
+                      <div className="mt-2 text-sm text-red-500">
+                        Please add at least one state code
+                      </div>
+                    )}
                 </div>
               </div>
             )}
@@ -380,7 +449,7 @@ export default function SettingsPage() {
           <Button
             type="submit"
             disabled={formLoading || !selectedUserId}
-            className="w-full"
+            className="w-full bg-amber text-paper hover:bg-amber/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {formLoading ? "Saving..." : "Save Permissions"}
           </Button>
