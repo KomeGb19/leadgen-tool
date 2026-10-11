@@ -5,13 +5,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: "#14171B",       // primary background — near-black charcoal
-        panel: "#1C2126",     // card/panel surface
-        rail: "#22282F",      // sidebar/rail surface
-        paper: "#EDEAE1",     // manifest paper — used sparingly for contrast blocks
-        line: "#333A42",      // hairline borders
-        muted: "#8A9199",     // secondary text
-        amber: "#E8A33D",     // placard amber — the one accent
+        background: "#14171B", // alias of ink, replaces the old .bg-background CSS rule
+        ink: "#14171B",        // primary background — near-black charcoal
+        panel: "#1C2126",      // card/panel surface
+        rail: "#22282F",       // sidebar/rail surface
+        paper: "#EDEAE1",      // manifest paper — used sparingly for contrast blocks
+        line: "#333A42",       // hairline borders
+        muted: "#8A9199",      // secondary text
+        amber: "#E8A33D",      // placard amber — the one accent
         amberDim: "#8A6323",
         ok: "#3FA66B",
         warn: "#D97A2E",
@@ -19,10 +20,10 @@ export default {
         info: "#4A90D9",
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'sans-serif'],
-        display: ["'Barlow Condensed'", "sans-serif"],
-        body: ["'Inter'", "sans-serif"],
-        mono: ["'IBM Plex Mono'", "monospace"],
+        sans: ["var(--font-sans)", "sans-serif"],
+        body: ["var(--font-sans)", "sans-serif"], // keeps existing font-body classes working
+        display: ["var(--font-display)", "sans-serif"],
+        mono: ["var(--font-mono)", "monospace"],
       },
       borderRadius: {
         none: "0px",
