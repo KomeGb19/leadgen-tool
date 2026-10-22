@@ -19,6 +19,12 @@ create table companies (
   years_in_business int,
   review_count int,
   rating numeric(2,1),
+  ownership_status text check (ownership_status in ('independent', 'pe_backed', 'owned_by_strategic', 'unknown')),
+  parent_company text,
+  acquisition_year int,
+  confidence text check (confidence in ('high', 'medium', 'low')),
+  sources text[],
+  ownership_researched_at timestamptz,
   created_at timestamptz default now(),
   unique (name, address)
 );

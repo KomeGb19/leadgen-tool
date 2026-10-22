@@ -5,6 +5,14 @@ export interface ExaCompanyResult {
   headquarters?: string;
 }
 
+export interface ExaOwnershipResult {
+  ownership_status: "independent" | "pe_backed" | "owned_by_strategic" | "unknown";
+  parent_company?: string | null;
+  acquisition_year?: number | null;
+  confidence: "high" | "medium" | "low";
+  sources?: string[];
+}
+
 function exaApiKey(): string {
   const key = process.env.EXA_API_KEY;
   if (!key) throw new Error("EXA_API_KEY is not set");
@@ -52,6 +60,74 @@ export async function searchCompanyFoundedYear(
     return data.output?.content ?? null;
   } catch (error) {
     console.error("[exa] Error searching company:", error);
+    return null;
+  }
+}
+
+export async function searchCompanyOwnership(
+  companyName: string,
+  locationHint?: string
+): Promise<ExaOwnershipResult | null> {
+  try {
+    const res = await fetch("https://api.exa.ai/search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${exaApiKey()}`,
+      },
+      body: JSON.stringify({
+        query: `Determine the ownership structure for ${companyName}${locationHint ? ` in ${locationHint}` : ""}. Provide only a structured result with: ownership_status as one of independent, pe_backed, owned_by_strategic, or unknown; parent_company as the owning firm if publicly identified; acquisition_year as the year of the acquisition if explicitly stated; confidence as high, medium, or low; sources as a list of supporting URLs. If there is no clear evidence, set ownership_status to unknown, parent_company to null, acquisition_year to null, confidence to low, and sources to [].`,
+        type: "deep",
+        outputSchema: {
+          type: "object",
+          required: ["ownership_status", "confidence", "sources"],
+          properties: {
+            ownership_status: {
+              type: "string",
+              enum: ["independent", "pe_backed", "owned_by_strategic", "unknown"]
+            },
+            parent_company: { type: ["string", "null"] },
+            acquisition_year: { type: ["number", "null"] },
+            confidence: {
+              type: "string",
+              enum: ["high", "medium", "low"]
+            },
+            sources: {
+              type: "array",
+              items: { type: "string" }
+            }
+          }
+        }
+      })
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`[exa] Ownership lookup failed: ${res.status}, body: ${errorText}`);
+      return null;
+    }
+
+    const data = await res.json();
+    const ownership = data.output?.content ?? null;
+
+    if (!ownership) return null;
+
+    return {
+      ownership_status: ["independent", "pe_backed", "owned_by_strategic", "unknown"].includes(
+        ownership.ownership_status
+      )
+        ? ownership.ownership_status
+        : "unknown",
+      parent_company: ownership.parent_company ?? null,
+      acquisition_year:
+        typeof ownership.acquisition_year === "number" ? ownership.acquisition_year : null,
+      confidence: ["high", "medium", "low"].includes(ownership.confidence)
+        ? ownership.confidence
+        : "low",
+      sources: Array.isArray(ownership.sources) ? ownership.sources : [],
+    };
+  } catch (error) {
+    console.error("[exa] Error researching ownership:", error);
     return null;
   }
 }

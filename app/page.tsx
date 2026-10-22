@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { StatsCards } from "@/components/StatsCards";
 import { LeadMapClient } from "@/components/LeadMapClient";
@@ -18,7 +19,16 @@ import { Spinner } from "@/components/ui/spinner";
 import type { Lead } from "@/lib/types";
 
 export default function DashboardPage() {
-  const { leads, loading, source, refresh, updateStatus, addNote } = useLeads();
+  const {
+    leads,
+    loading,
+    source,
+    refresh,
+    updateStatus,
+    addNote,
+    researchOwnership,
+    researchHotLeads,
+  } = useLeads();
   const [selected, setSelected] = useState<Lead | null>(null);
   const [selectedStateCode, setSelectedStateCode] = useState<string>("WA");
   const searchParams = useSearchParams();
@@ -75,6 +85,14 @@ export default function DashboardPage() {
               </option>
             ))}
           </Select>
+          {/* <Button
+            variant="outline"
+            size="sm"
+            onClick={researchHotLeads}
+            disabled={loading || leads.filter((lead) => lead.score >= 80).length === 0}
+          >
+            Research hot leads
+          </Button> */}
           <EnrichButton onDone={refresh} stateCode={selectedStateCode} />
         </div>
       </div>
@@ -134,6 +152,7 @@ export default function DashboardPage() {
         onClose={() => setSelected(null)}
         onStatusChange={updateStatus}
         onAddNote={addNote}
+        onResearchOwnership={researchOwnership}
       />
     </div>
   );

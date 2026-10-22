@@ -20,6 +20,11 @@ const RAW = [
     phone: "(206) 555-0142", website: "cascadeseptic.example.com",
     category: "both" as const, source: "fmcsa" as const,
     yearsInBusiness: 18, reviewCount: 214, rating: 4.6,
+    ownershipStatus: "pe_backed" as const,
+    parentCompany: "Summit Capital Partners",
+    acquisitionYear: 2021,
+    ownershipConfidence: "high" as const,
+    ownershipSources: ["https://example.com/cascade-ownership"],
     fmcsa: { usdotNumber: "1893442", powerUnits: 14, drivers: 16, operatingStatus: "AUTHORIZED", mcs150Date: "2026-02-11" },
     imagery: { truckCountEstimate: 13, capturedDate: "2026-04-02", source: "google_static" as const },
   },
@@ -175,6 +180,12 @@ export const mockLeads: Lead[] = RAW.map((r, i) => {
     yearsInBusiness: r.yearsInBusiness,
     reviewCount: r.reviewCount,
     rating: r.rating,
+    ownershipStatus: (r as any).ownershipStatus,
+    parentCompany: (r as any).parentCompany,
+    acquisitionYear: (r as any).acquisitionYear,
+    ownershipConfidence: (r as any).ownershipConfidence,
+    ownershipSources: (r as any).ownershipSources ?? [],
+    ownershipResearchedAt: new Date().toISOString(),
   };
 
   const statusCycle = ["new", "new", "contacted", "new", "qualified", "new", "contacted", "won", "new", "new", "lost", "new", "qualified", "new"] as const;
@@ -182,9 +193,9 @@ export const mockLeads: Lead[] = RAW.map((r, i) => {
   return {
     id: company.id,
     company,
-    fmcsa: r.fmcsa,
-    imagery: { ...r.imagery, imageUrl: PLACEHOLDER_IMAGE },
-    score: scoreLead(company, r.fmcsa, r.imagery),
+    fmcsa: (r as any).fmcsa,
+    imagery: { ...((r as any).imagery), imageUrl: PLACEHOLDER_IMAGE },
+    score: scoreLead(company as any, (r as any).fmcsa, (r as any).imagery),
     status: statusCycle[i % statusCycle.length],
     notes: [],
     updatedAt: new Date(Date.now() - i * 86400000 * 2).toISOString(),
