@@ -98,5 +98,62 @@ export function useLeads() {
       });
   }, []);
 
-  return { leads, loading, source, refresh, updateStatus, addNote };
+  const researchOwnership = useCallback(async (leadId: string) => {
+    try {
+      const res = await authFetch(`/api/leads/${leadId}/ownership`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      const ownership = data.ownership ?? null;
+
+      if (!ownership) {
+        return;
+      }
+
+      setLeads((prev) =>
+        prev.map((lead) => {
+          if (lead.id !== leadId) return lead;
+
+          return {
+            ...lead,
+            company: {
+              ...lead.company,
+              ownershipStatus: ownership.ownership_status ?? lead.company.ownershipStatus,
+              parentCompany: ownership.parent_company ?? lead.company.parentCompany,
+              acquisitionYear:
+                ownership.acquisition_year ?? lead.company.acquisitionYear ?? null,
+              ownershipConfidence: ownership.confidence ?? lead.company.ownershipConfidence,
+              ownershipSources: ownership.sources ?? lead.company.ownershipSources ?? [],
+              ownershipResearchedAt: new Date().toISOString(),
+            },
+          };
+        })
+      );
+    } catch (err) {
+      console.error("Failed to research ownership:", err);
+    }
+  }, []);
+
+  const researchHotLeads = useCallback(async () => {
+    const hotLeadIds = leads.filter((lead) => lead.score >= 80).map((lead) => lead.id);
+    for (const leadId of hotLeadIds) {
+      await researchOwnership(leadId);
+    }
+  }, [leads, researchOwnership]);
+
+  return {
+    leads,
+    loading,
+    source,
+    refresh,
+    updateStatus,
+    addNote,
+    researchOwnership,
+    researchHotLeads,
+  };
 }

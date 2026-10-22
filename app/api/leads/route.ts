@@ -89,6 +89,12 @@ export async function GET(request: Request) {
       yearsInBusiness: c.years_in_business,
       reviewCount: c.review_count,
       rating: c.rating,
+      ownershipStatus: c.ownership_status ?? undefined,
+      parentCompany: c.parent_company ?? null,
+      acquisitionYear: c.acquisition_year ?? null,
+      ownershipConfidence: c.confidence ?? undefined,
+      ownershipSources: Array.isArray(c.sources) ? c.sources : [],
+      ownershipResearchedAt: c.ownership_researched_at ?? undefined,
     };
 
     return {

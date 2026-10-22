@@ -19,14 +19,17 @@ export function LeadDetailSheet({
   onClose,
   onStatusChange,
   onAddNote,
+  onResearchOwnership,
 }: {
   lead: Lead | null;
   open: boolean;
   onClose: () => void;
   onStatusChange: (leadId: string, status: LeadStatus) => void;
   onAddNote: (leadId: string, body: string) => void;
+  onResearchOwnership?: (leadId: string) => Promise<void> | void;
 }) {
   const [note, setNote] = useState("");
+  const [researchingOwnership, setResearchingOwnership] = useState(false);
 
   if (!lead) return null;
   const { company, fmcsa, imagery } = lead;
@@ -96,6 +99,7 @@ export function LeadDetailSheet({
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="fmcsa">FMCSA</TabsTrigger>
             <TabsTrigger value="imagery">Satellite</TabsTrigger>
+            <TabsTrigger value="ownership">Ownership</TabsTrigger>
             <TabsTrigger value="notes">Notes ({lead.notes.length})</TabsTrigger>
           </TabsList>
 
@@ -109,7 +113,8 @@ export function LeadDetailSheet({
               <InfoRow
                 label="Years in business"
                 value={
-                  company.yearsInBusiness !== null && company.yearsInBusiness !== undefined
+                  company.yearsInBusiness !== null &&
+                  company.yearsInBusiness !== undefined
                     ? `${company.yearsInBusiness} yrs`
                     : "Unknown"
                 }
@@ -177,6 +182,107 @@ export function LeadDetailSheet({
 
           <TabsContent value="imagery">
             <SatelliteViewer company={company} imagery={imagery} />
+          </TabsContent>
+
+          <TabsContent value="ownership">
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-end">
+                <Button
+                  variant="amber"
+                  size="sm"
+                  disabled={researchingOwnership || !onResearchOwnership}
+                  onClick={async () => {
+                    if (!onResearchOwnership) return;
+                    setResearchingOwnership(true);
+                    try {
+                      await onResearchOwnership(lead.id);
+                    } finally {
+                      setResearchingOwnership(false);
+                    }
+                  }}
+                >
+                  {researchingOwnership
+                    ? "Researching..."
+                    : "Research ownership"}
+                </Button>
+              </div>
+
+              {company.ownershipStatus ||
+              company.parentCompany ||
+              company.ownershipConfidence ||
+              company.ownershipSources?.length ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <InfoRow
+                    label="Ownership status"
+                    value={
+                      company.ownershipStatus
+                        ? company.ownershipStatus.replace("_", " ")
+                        : "Unknown"
+                    }
+                    badge={
+                      company.ownershipStatus === "independent"
+                        ? "ok"
+                        : company.ownershipStatus
+                          ? "warn"
+                          : undefined
+                    }
+                  />
+                  <InfoRow
+                    label="Parent company"
+                    value={company.parentCompany || "Not identified"}
+                  />
+                  <InfoRow
+                    label="Acquisition year"
+                    value={
+                      company.acquisitionYear
+                        ? String(company.acquisitionYear)
+                        : "Not stated"
+                    }
+                  />
+                  <InfoRow
+                    label="Confidence"
+                    value={
+                      company.ownershipConfidence
+                        ? company.ownershipConfidence
+                        : "Unknown"
+                    }
+                  />
+                </div>
+              ) : (
+                <div className="rounded border border-dashed border-line py-8 text-center">
+                  <p className="text-sm text-paper">
+                    No ownership research yet
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    Click “Research ownership” to query EXA for private equity,
+                    strategic owner, or independence status.
+                  </p>
+                </div>
+              )}
+
+              {company.ownershipSources &&
+                company.ownershipSources.length > 0 && (
+                  <div className="rounded border border-line bg-ink p-3">
+                    <div className="font-mono text-[10px] uppercase tracking-wide text-muted mb-2">
+                      Sources
+                    </div>
+                    <ul className="space-y-1 text-sm text-paper">
+                      {company.ownershipSources.map((src) => (
+                        <li key={src}>
+                          <a
+                            href={src}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-amber hover:underline"
+                          >
+                            {src}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+            </div>
           </TabsContent>
 
           <TabsContent value="notes">

@@ -1,5 +1,16 @@
 export type LeadStatus = "new" | "contacted" | "qualified" | "won" | "lost";
 export type LeadSource = "fmcsa" | "google_places" | "manual" | "hauler_registry";
+export type OwnershipStatus = "independent" | "pe_backed" | "owned_by_strategic" | "unknown";
+export type OwnershipConfidence = "high" | "medium" | "low";
+
+export interface OwnershipResearch {
+  ownershipStatus?: OwnershipStatus;
+  parentCompany?: string | null;
+  acquisitionYear?: number | null;
+  confidence?: OwnershipConfidence;
+  sources?: string[];
+  ownershipResearchedAt?: string;
+}
 
 export interface FmcsaRecord {
   usdotNumber: string;
@@ -35,6 +46,12 @@ export interface Company {
   yearsInBusiness?: number;
   reviewCount?: number;
   rating?: number;
+  ownershipStatus?: OwnershipStatus;
+  parentCompany?: string | null;
+  acquisitionYear?: number | null;
+  ownershipConfidence?: OwnershipConfidence;
+  ownershipSources?: string[];
+  ownershipResearchedAt?: string;
 }
 
 export interface Lead {

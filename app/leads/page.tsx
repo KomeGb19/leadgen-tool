@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
@@ -15,11 +15,27 @@ import { US_STATES } from "@/lib/stateUtils";
 import type { Lead, LeadFilters } from "@/lib/types";
 
 export default function LeadsPage() {
-  const { leads, loading, source, refresh, updateStatus, addNote } = useLeads();
+  const {
+    leads,
+    loading,
+    source,
+    refresh,
+    updateStatus,
+    addNote,
+    researchOwnership,
+    researchHotLeads,
+  } = useLeads();
   const [filters, setFilters] = useState<LeadFilters>(DEFAULT_FILTERS);
   const [view, setView] = useState<"table" | "kanban">("table");
   const [selected, setSelected] = useState<Lead | null>(null);
   const [selectedStateCode, setSelectedStateCode] = useState<string>("WA");
+
+  useEffect(() => {
+    setSelected((current) => {
+      if (!current) return null;
+      return leads.find((lead) => lead.id === current.id) ?? null;
+    });
+  }, [leads]);
 
   const filtered = useMemo(
     () => applyFilters(leads, filters),
@@ -63,12 +79,20 @@ export default function LeadsPage() {
             className="min-w-[120px]"
           >
             <option value="all">All States</option>
-            {US_STATES.map(state => (
+            {US_STATES.map((state) => (
               <option key={state.code} value={state.code}>
                 {state.name}
               </option>
             ))}
           </Select>
+          {/* <Button
+            variant="outline"
+            size="sm"
+            onClick={researchHotLeads}
+            disabled={loading || leads.filter((lead) => lead.score >= 80).length === 0}
+          >
+            Research hot leads
+          </Button> */}
           <EnrichButton onDone={refresh} stateCode={selectedStateCode} />
         </div>
       </div>
@@ -100,6 +124,7 @@ export default function LeadsPage() {
         onClose={() => setSelected(null)}
         onStatusChange={updateStatus}
         onAddNote={addNote}
+        onResearchOwnership={researchOwnership}
       />
     </div>
   );
